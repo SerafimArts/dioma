@@ -1,14 +1,6 @@
 ES6 Dependency Injecton
 ==============================
 
-Building requirements:
-
-- EcmaScript 2015
-- FlowType Support
-- EcmaScript 2016 Properties support
-
-> See package.json and gulpfile.js for resolve building environment
-
 ## Simple example:
 
 ```js
@@ -65,3 +57,11 @@ user = app.make(User); // class User#3 { isAdmin = false; }
 - `.singleton(alias: string, concrete: any)` - Bind value as singleton
 - `.make(alias: string|Function)` - Resolve a value
 - `.has(alias: string|Function)` - Bool: Service is declared in container
+
+
+## Building
+
+- `npm install`
+- `gulp default`
+
+> See package.json and gulpfile.js for resolve building environment
