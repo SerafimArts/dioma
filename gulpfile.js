@@ -24,12 +24,10 @@ gulp.task('default', () => {
             presets: ['es2015', 'stage-1'],
             plugins: [
                 'syntax-flow',
+                'syntax-decorators',
+
                 'transform-flow-strip-types',
-                ['transform-es2015-modules-commonjs',  {
-                    'allowTopLevelThis':    false,
-                    'strict':               true,
-                    'loose':                false
-                }]
+                'transform-decorators-legacy'
             ]
         }))
         .pipe(commonjs({

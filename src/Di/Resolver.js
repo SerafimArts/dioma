@@ -1,5 +1,5 @@
 import Container from '/Di/Container';
-import { ReflectionClass, ReflectionFunction } from '/Di/Reflection';
+import { Reflection, ReflectionClass, ReflectionFunction } from '/Di/Reflection';
 import { ServiceResolvingException } from '/Di/Exceptions';
 
 type ContainerConcrete = Object|Function;
@@ -10,23 +10,6 @@ export default class Resolver {
     constructor(container:Container, declaration:ContainerConcrete) {
         this._container   = container;
         this._declaration = declaration;
-    }
-
-    isFunction():boolean {
-        return this._declaration instanceof Function && (
-            !this._declaration.name ||
-            this._declaration.name === 'Function'
-        );
-    }
-
-    isInstance():boolean {
-        return this._declaration !== null && typeof this._declaration === 'object';
-    }
-
-    isClass():boolean {
-        return this._declaration.name &&
-            this._declaration.name !== 'Function' &&
-            this._declaration instanceof Function;
     }
 
     getContainer():Container {
@@ -61,11 +44,11 @@ export default class Resolver {
 export class FactoryResolver extends Resolver {
     resolve():any {
         switch (true) {
-            case this.isInstance():
+            case Reflection.isInstance(this.getConcrete()):
                 return this.getConcrete();
-            case this.isClass():
+            case Reflection.isClass(this.getConcrete()):
                 return super.resolve(new ReflectionClass(this.getConcrete()));
-            case this.isFunction():
+            case Reflection.isClosure(this.getConcrete()):
                 return super.resolve(new ReflectionFunction(this.getConcrete()));
         }
 

@@ -1,5 +1,78 @@
+require.register("Test", function(exports, require, module){
+  "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dec, _desc, _value, _class;
+
+var _Mapping = require("/Di/Mapping");
+
+var _Container = require("/Di/Container");
+
+var _Container2 = _interopRequireDefault(_Container);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+        desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+        desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+        return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+        desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+        desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+        Object['define' + 'Property'](target, property, desc);
+        desc = null;
+    }
+
+    return desc;
+}
+
+var Test = (_dec = (0, _Mapping.Inject)(_Container2.default), (_class = function () {
+    function Test() {
+        _classCallCheck(this, Test);
+    }
+
+    _createClass(Test, [{
+        key: "some",
+        value: function some(_some) {}
+    }]);
+
+    return Test;
+}(), (_applyDecoratedDescriptor(_class.prototype, "some", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "some"), _class.prototype)), _class));
+exports.default = Test;
+  
+});
+
+
 require.register("Di/Container", function(exports, require, module){
   "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -61,6 +134,10 @@ exports.default = Container;
 require.register("Di/Exceptions", function(exports, require, module){
   "use strict";
 
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
@@ -106,8 +183,42 @@ var ServiceResolvingException = exports.ServiceResolvingException = function (_C
 });
 
 
+require.register("Di/Mapping", function(exports, require, module){
+  'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.Inject = Inject;
+function _resolveDependency(obj) {
+    return obj && obj.default ? obj.default : obj;
+}
+
+var INJECTION = Symbol('[injections]');
+
+function Inject() {
+    for (var _len = arguments.length, dependencies = Array(_len), _key = 0; _key < _len; _key++) {
+        dependencies[_key] = arguments[_key];
+    }
+
+    return function (target, key, descriptor) {
+        Reflect.defineMetadata(INJECTION, dependencies.map(function (i) {
+            return _resolveDependency(i);
+        }), target.constructor.prototype, key);
+
+        return descriptor;
+    };
+}
+  
+});
+
+
 require.register("Di/Reflection", function(exports, require, module){
   'use strict';
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
@@ -130,6 +241,36 @@ var ReflectionException = function (_Error) {
 
     return ReflectionException;
 }(Error);
+
+var Reflection = exports.Reflection = function () {
+    function Reflection() {
+        _classCallCheck(this, Reflection);
+    }
+
+    _createClass(Reflection, null, [{
+        key: 'isFunction',
+        value: function isFunction(value) {
+            return value && value instanceof Function && value.constructor.name === 'Function';
+        }
+    }, {
+        key: 'isClass',
+        value: function isClass(value) {
+            return value && value.name && this.isFunction(value);
+        }
+    }, {
+        key: 'isClosure',
+        value: function isClosure(value) {
+            return value && !value.name && this.isFunction(value);
+        }
+    }, {
+        key: 'isInstance',
+        value: function isInstance(value) {
+            return value && this.isClass(value.constructor);
+        }
+    }]);
+
+    return Reflection;
+}();
 
 var ReflectionFunction = exports.ReflectionFunction = function () {
     function ReflectionFunction(closure) {
@@ -205,11 +346,12 @@ var ReflectionClass = exports.ReflectionClass = function (_ReflectionFunction) {
 require.register("Di/Resolver", function(exports, require, module){
   'use strict';
 
-exports.SingletonResolver = exports.FactoryResolver = undefined;
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.SingletonResolver = exports.FactoryResolver = exports.default = undefined;
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -242,21 +384,6 @@ var Resolver = function () {
     }
 
     _createClass(Resolver, [{
-        key: 'isFunction',
-        value: function isFunction() {
-            return this._declaration instanceof Function && (!this._declaration.name || this._declaration.name === 'Function');
-        }
-    }, {
-        key: 'isInstance',
-        value: function isInstance() {
-            return this._declaration !== null && _typeof(this._declaration) === 'object';
-        }
-    }, {
-        key: 'isClass',
-        value: function isClass() {
-            return this._declaration.name && this._declaration.name !== 'Function' && this._declaration instanceof Function;
-        }
-    }, {
         key: 'getContainer',
         value: function getContainer() {
             return this._container;
@@ -327,11 +454,11 @@ var FactoryResolver = exports.FactoryResolver = function (_Resolver) {
         key: 'resolve',
         value: function resolve() {
             switch (true) {
-                case this.isInstance():
+                case _Reflection.Reflection.isInstance(this.getConcrete()):
                     return this.getConcrete();
-                case this.isClass():
+                case _Reflection.Reflection.isClass(this.getConcrete()):
                     return _get(Object.getPrototypeOf(FactoryResolver.prototype), 'resolve', this).call(this, new _Reflection.ReflectionClass(this.getConcrete()));
-                case this.isFunction():
+                case _Reflection.Reflection.isClosure(this.getConcrete()):
                     return _get(Object.getPrototypeOf(FactoryResolver.prototype), 'resolve', this).call(this, new _Reflection.ReflectionFunction(this.getConcrete()));
             }
 

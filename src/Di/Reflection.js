@@ -2,6 +2,23 @@ class ReflectionException extends Error {
 
 }
 
+export class Reflection {
+    static isFunction(value) {
+        return value && value instanceof Function && value.constructor.name === 'Function';
+    }
+
+    static isClass(value) {
+        return value && value.name && this.isFunction(value);
+    }
+
+    static isClosure(value) {
+        return value && !value.name && this.isFunction(value);
+    }
+
+    static isInstance(value) {
+        return value && this.isClass(value.constructor);
+    }
+}
 
 export class ReflectionFunction {
     constructor(closure:Function) {

@@ -9,31 +9,9 @@
 <body>
     <script>
         var app = new (require('Di/Container').default);
+        var test = new (require('Test').default);
 
-        app.singleton('test1', 21);
-
-        app.bind('test2', function(test1) {
-            return test1 * Math.random();
-        });
-
-        app.singleton('some', function Example(test2) {
-            this.value = test2;
-        });
-
-
-        document.write('Singleton example: <br />');
-        for (var i = 0; i < 10; i++) {
-            var value = app.make('some').value; // Resolving
-            document.write(value, '<br />')
-        }
-
-        document.write('<br />-------------------------<br />');
-
-        document.write('Factory example: <br />');
-        for (var j = 0; j < 10; j++) {
-            var val = app.make('test2'); // Resolving
-            document.write(val, '<br />')
-        }
+        test.some('asd');
     </script>
 </body>
 </html>
