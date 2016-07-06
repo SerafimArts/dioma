@@ -16,7 +16,7 @@ gulp.task('default', () => {
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('example'));
 
-    
+
     // Building container
     return gulp.src('src/**/*.js')
         .pipe(sourcemaps.init())
@@ -43,6 +43,6 @@ gulp.task('default', () => {
         .pipe(concat('container.js'))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest('dist'))
-        .pipe(gulp.dest('test'))
+        .pipe(gulp.dest('example'))
     ;
 });
