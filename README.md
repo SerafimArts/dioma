@@ -31,45 +31,37 @@ app.make('test'); // Some: 23, Any: 42
 ```js
 import Container from "Di/Container";
 
-class Example {
-  constructor(value) {
-    this.value = value;
-  }
+var user = null,
+    app  = new Container;
+
+class User {
+    isAdmin = false;
+
+    constructor(auth:AuthGuard) {
+        this.isAdmin = auth.check();
+    }
 }
 
-var app = new Container;
-
-app.bind('value', 23);
-
-app.bind('some', Example);
-
-console.log(app.make('some')); // class Example { value: 23 }
+class AuthGuard {
+    check() {
+        return Math.random() > .5;
+    }
+}
 
 
-// Factory
+// Was be created once
+app.singleton('auth', AuthGuard);
 
-app.bind('some', value => {
-    return new Example(value * 2 - Math.random());
-})
 
-console.log(app.make('some')); // class Example#1 { value: 45.62347846928734 }
-console.log(app.make('some')); // class Example#2 { value: 45.79875934435664 }
-console.log(app.make('some')); // class Example#3 { value: 45.47856398475633 }
-
-// Singleton
-
-app.singleton('some', value => {
-    return new Example(value * 2 - Math.random());
-})
-
-console.log(app.make('some')); // class Example#4 { value: 45.32423423423436 }
-console.log(app.make('some')); // class Example#4 { value: 45.32423423423436 }
-console.log(app.make('some')); // class Example#4 { value: 45.32423423423436 }
+// Runtime initialisation without binding as factory
+user = app.make(User); // class User#1 { isAdmin = false; }
+user = app.make(User); // class User#2 { isAdmin = true; }
+user = app.make(User); // class User#3 { isAdmin = false; }
 ```
 
 ## API:
 
-- `.bind(alias: string|Function, concrete: Object|Function)` - Bind value as factory without resolving cache
-- `.singleton(alias: string|Function, concrete: Object|Function)` - Bind value as singleton
+- `.bind(alias: string, concrete: any)` - Bind value as factory without resolving cache
+- `.singleton(alias: string, concrete: any)` - Bind value as singleton
 - `.make(alias: string|Function)` - Resolve a value
 - `.has(alias: string|Function)` - Bool: Service is declared in container
