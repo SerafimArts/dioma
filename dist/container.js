@@ -43,8 +43,7 @@ var Container = function () {
         key: "make",
         value: function make(alias) {
             if (!this.has(alias)) {
-                return this.bind(alias).make(alias);
-                //throw new ServiceNotFoundException(alias);
+                throw new _Exceptions.ServiceNotFoundException(alias);
             }
 
             return this._dependencies.get(alias).resolve();

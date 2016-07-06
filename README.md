@@ -1,5 +1,13 @@
-EcmaScript6 DependencyInjecton
+ES6 Dependency Injecton
 ==============================
+
+Building requirements:
+
+- EcmaScript 2015
+- FlowType Support
+- EcmaScript 2016 Properties support
+
+> See package.json and gulpfile.js for resolve building environment
 
 ## Simple example:
 
@@ -11,7 +19,7 @@ var app = new Container;
 app.bind('some', 23);
 app.bind('any', 42);
 
-app.bind('test', function(some, any) {
+app.bind('test', (some, any) => {
     console.log('Some: ', some, ', Any: ', any);
 });
 

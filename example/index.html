@@ -9,7 +9,7 @@
 <body>
     <script>
         var app = new (require('Di/Container').default);
-        
+
         app.singleton('test1', 21);
 
         app.bind('test2', function(test1) {
