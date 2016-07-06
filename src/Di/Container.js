@@ -1,5 +1,4 @@
 import {FactoryResolver, SingletonResolver, default as Resolver} from "/Di/Resolver";
-import {ServiceNotFoundException} from "/Di/Exceptions";
 
 type ContainerAlias = string|Function;
 type ContainerConcrete = Object|Function;
@@ -7,13 +6,13 @@ type ContainerConcrete = Object|Function;
 export default class Container {
     _dependencies:Map<Resolver> = new Map;
 
-    bind(alias:ContainerAlias, concrete:ContainerConcrete) {
+    bind(alias:ContainerAlias, concrete:ContainerConcrete):Container {
         this._dependencies.set(alias, new FactoryResolver(this, concrete));
         
         return this;
     }
 
-    singleton(alias:ContainerAlias, concrete:ContainerConcrete) {
+    singleton(alias:ContainerAlias, concrete:ContainerConcrete):Container {
         this._dependencies.set(alias, new SingletonResolver(this, concrete));
 
         return this;
@@ -23,9 +22,9 @@ export default class Container {
         return this._dependencies.has(alias);
     }
 
-    make(alias:ContainerAlias) {
+    make(alias:ContainerAlias):any {
         if (!this.has(alias)) {
-            throw new ServiceNotFoundException(alias);
+            return (new FactoryResolver(this, alias)).resolve();
         }
 
         return this._dependencies.get(alias).resolve();

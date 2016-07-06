@@ -27,7 +27,7 @@ export default class Resolver {
                 i++;
                 if (!this.getContainer().has(arg)) {
                     throw new ServiceResolvingException(
-                        `Can not resolve argument#${i} "${arg}" for ${reflection.getName()}`
+                        `Can not resolve argument#${i} "${arg}" of ${reflection.getName()}`
                     );
                 }
 
@@ -44,8 +44,6 @@ export default class Resolver {
 export class FactoryResolver extends Resolver {
     resolve():any {
         switch (true) {
-            case Reflection.isInstance(this.getConcrete()):
-                return this.getConcrete();
             case Reflection.isClass(this.getConcrete()):
                 return super.resolve(new ReflectionClass(this.getConcrete()));
             case Reflection.isClosure(this.getConcrete()):

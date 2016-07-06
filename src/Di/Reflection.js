@@ -1,22 +1,17 @@
-class ReflectionException extends Error {
-
-}
-
 export class Reflection {
     static isFunction(value) {
         return value && value instanceof Function && value.constructor.name === 'Function';
     }
 
     static isClass(value) {
-        return value && value.name && this.isFunction(value);
+        return value &&
+            typeof value.name === 'string' &&
+            value.name.length > 0 &&
+            this.isFunction(value);
     }
 
     static isClosure(value) {
         return value && !value.name && this.isFunction(value);
-    }
-
-    static isInstance(value) {
-        return value && this.isClass(value.constructor);
     }
 }
 
@@ -30,7 +25,7 @@ export class ReflectionFunction {
     }
 
     getArguments():Array<string> {
-        return (this._getMatches()[1] || '').replace(/\s+/g, '').split(',');
+        return (this._getMatches()[1] || '').replace(/\s+/g, '').split(',').filter(i => i.length > 0);
     }
 
     getName():string {
@@ -50,10 +45,6 @@ export class ReflectionClass extends ReflectionFunction {
 
     _getMatches():Array<string> {
         return this._closure.toString().match(/function\s*.*?\s*\((.*?)\)\s*\{/) || [];
-    }
-
-    getName():string {
-        return `${super.getName()} class`;
     }
 
     invoke(...args):any {
