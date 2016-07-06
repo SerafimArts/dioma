@@ -43,7 +43,8 @@ var Container = function () {
         key: "make",
         value: function make(alias) {
             if (!this.has(alias)) {
-                throw new _Exceptions.ServiceNotFoundException(alias);
+                return this.bind(alias).make(alias);
+                //throw new ServiceNotFoundException(alias);
             }
 
             return this._dependencies.get(alias).resolve();
@@ -241,51 +242,26 @@ var Resolver = function () {
         this._declaration = declaration;
     }
 
-    /**
-     * @returns {boolean}
-     */
-
-
     _createClass(Resolver, [{
         key: 'isFunction',
         value: function isFunction() {
             return this._declaration instanceof Function && (!this._declaration.name || this._declaration.name === 'Function');
         }
-
-        /**
-         * @returns {boolean}
-         */
-
     }, {
         key: 'isInstance',
         value: function isInstance() {
             return this._declaration !== null && _typeof(this._declaration) === 'object';
         }
-
-        /**
-         * @returns {boolean}
-         */
-
     }, {
         key: 'isClass',
         value: function isClass() {
             return this._declaration.name && this._declaration.name !== 'Function' && this._declaration instanceof Function;
         }
-
-        /**
-         * @return {Container}
-         */
-
     }, {
         key: 'getContainer',
         value: function getContainer() {
             return this._container;
         }
-
-        /**
-         * @return {ContainerConcrete}
-         */
-
     }, {
         key: 'getConcrete',
         value: function getConcrete() {
