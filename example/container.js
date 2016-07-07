@@ -1,3 +1,93 @@
+require.register("Test", function(exports, require, module){
+  "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _dec, _desc, _value, _class;
+
+var _Mapping = require("/Di/Mapping");
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+        desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+        desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+        return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+        desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+        desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+        Object['define' + 'Property'](target, property, desc);
+        desc = null;
+    }
+
+    return desc;
+}
+
+var Test = (_dec = (0, _Mapping.Inject)('app'), (_class = function () {
+    function Test() {
+        _classCallCheck(this, Test);
+    }
+
+    _createClass(Test, [{
+        key: "some",
+        value: function some(app) {}
+    }]);
+
+    return Test;
+}(), (_applyDecoratedDescriptor(_class.prototype, "some", [_dec], Object.getOwnPropertyDescriptor(_class.prototype, "some"), _class.prototype)), _class));
+exports.default = Test;
+  
+});
+
+
+require.register("boot", function(exports, require, module){
+  "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.default = boot;
+
+var _Container = require("/Di/Container");
+
+var _Container2 = _interopRequireDefault(_Container);
+
+var _Mapping = require("/Di/Mapping");
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function boot() {
+    window.app = function (value) {
+        var app = _Container2.default.getInstance();
+        return value ? app.make(value) : app;
+    };
+
+    window.Inject = _Mapping.Inject;
+}
+  
+});
+
+
 require.register("Di/Container", function(exports, require, module){
   "use strict";
 
@@ -8,17 +98,17 @@ exports.default = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+var _class, _temp;
+
 var _Resolver = require("/Di/Resolver");
 
 var _Resolver2 = _interopRequireDefault(_Resolver);
-
-var _Exceptions = require("/Di/Exceptions");
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var Container = function () {
+var Container = (_temp = _class = function () {
     function Container() {
         _classCallCheck(this, Container);
 
@@ -53,11 +143,18 @@ var Container = function () {
 
             return this._dependencies.get(alias).resolve();
         }
+    }], [{
+        key: "getInstance",
+        value: function getInstance() {
+            if (this._instance === null) {
+                this._instance = new this();
+            }
+            return this._instance;
+        }
     }]);
 
     return Container;
-}();
-
+}(), _class._instance = null, _temp);
 exports.default = Container;
   
 });
@@ -134,11 +231,9 @@ function Inject() {
     }
 
     return function (target, key, descriptor) {
-        Reflect.defineMetadata(INJECTION, dependencies.map(function (i) {
+        return Reflect.metadata(INJECTION, dependencies.map(function (i) {
             return _resolveDependency(i);
-        }), target.constructor.prototype, key);
-
-        return descriptor;
+        }))(target, key, descriptor);
     };
 }
   
@@ -154,23 +249,11 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var ReflectionException = function (_Error) {
-    _inherits(ReflectionException, _Error);
-
-    function ReflectionException() {
-        _classCallCheck(this, ReflectionException);
-
-        return _possibleConstructorReturn(this, Object.getPrototypeOf(ReflectionException).apply(this, arguments));
-    }
-
-    return ReflectionException;
-}(Error);
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var Reflection = exports.Reflection = function () {
     function Reflection() {
@@ -191,11 +274,6 @@ var Reflection = exports.Reflection = function () {
         key: 'isClosure',
         value: function isClosure(value) {
             return value && !value.name && this.isFunction(value);
-        }
-    }, {
-        key: 'isInstance',
-        value: function isInstance(value) {
-            return value && this.isClass(value.constructor);
         }
     }]);
 
@@ -242,10 +320,10 @@ var ReflectionClass = exports.ReflectionClass = function (_ReflectionFunction) {
     function ReflectionClass(cls) {
         _classCallCheck(this, ReflectionClass);
 
-        var _this2 = _possibleConstructorReturn(this, Object.getPrototypeOf(ReflectionClass).call(this, cls));
+        var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(ReflectionClass).call(this, cls));
 
-        _this2._class = cls;
-        return _this2;
+        _this._class = cls;
+        return _this;
     }
 
     _createClass(ReflectionClass, [{

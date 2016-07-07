@@ -6,13 +6,9 @@ var INJECTION = Symbol('[injections]');
 
 export function Inject(...dependencies) {
     return function (target, key, descriptor) {
-        Reflect.defineMetadata(
+        return Reflect.metadata(
             INJECTION,
-            dependencies.map(i => _resolveDependency(i)),
-            target.constructor.prototype,
-            key
-        );
-
-        return descriptor;
+            dependencies.map(i => _resolveDependency(i))
+        )(target, key, descriptor);
     };
 }

@@ -6,9 +6,18 @@ type ContainerConcrete = Object|Function;
 export default class Container {
     _dependencies:Map<Resolver> = new Map;
 
+    static _instance:?Container = null;
+
+    static getInstance():Container {
+        if (this._instance === null) {
+            this._instance = new this;
+        }
+        return this._instance;
+    }
+
     bind(alias:ContainerAlias, concrete:ContainerConcrete):Container {
         this._dependencies.set(alias, new FactoryResolver(this, concrete));
-        
+
         return this;
     }
 
