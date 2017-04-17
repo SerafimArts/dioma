@@ -1,41 +1,118 @@
-import {FactoryResolver, SingletonResolver, default as Resolver} from "/Di/Resolver";
-
-type ContainerAlias = string|Function;
-type ContainerConcrete = Object|Function;
+import Inject from "./Inject";
+import {Resolver, FactoryResolver, SingletonResolver} from "./Resolvers";
 
 export default class Container {
-    _dependencies:Map<Resolver> = new Map;
+    /**
+     * @type {Object.<string, Resolver>}
+     * @private
+     */
+    _items = {};
 
-    static _instance:?Container = null;
-
-    static getInstance():Container {
-        if (this._instance === null) {
-            this._instance = new this;
-        }
-        return this._instance;
+    /**
+     * @constructor
+     */
+    constructor() {
+        window.Inject = Inject;
     }
 
-    bind(alias:ContainerAlias, concrete:ContainerConcrete):Container {
-        this._dependencies.set(alias, new FactoryResolver(this, concrete));
+    /**
+     * @param {string|Function} classOrName
+     * @param {Function} __class
+     * @return {Container}
+     */
+    singleton(classOrName, __class: ?Function = null): Container {
+        [classOrName, __class] = this._resolveArguments(classOrName, __class);
+
+        this._items[classOrName] = new SingletonResolver(__class);
 
         return this;
     }
 
-    singleton(alias:ContainerAlias, concrete:ContainerConcrete):Container {
-        this._dependencies.set(alias, new SingletonResolver(this, concrete));
+    /**
+     * @param {string|Function} classOrName
+     * @param __class
+     * @return {Container}
+     */
+    factory(classOrName, __class: ?Function = null): Container {
+        [classOrName, __class] = this._resolveArguments(classOrName, __class);
+
+        this._items[classOrName] = new FactoryResolver(__class);
 
         return this;
     }
 
-    has(alias:ContainerAlias):boolean {
-        return this._dependencies.has(alias);
-    }
-
-    make(alias:ContainerAlias):any {
-        if (!this.has(alias)) {
-            return (new FactoryResolver(this, alias)).resolve();
+    /**
+     * @param {string|Function} classOrName
+     * @param {Function|null} __class
+     * @return {Container}
+     */
+    _resolveArguments(classOrName,  __class: ?Function = null) {
+        if (__class === null) {
+            __class = classOrName;
         }
 
-        return this._dependencies.get(alias).resolve();
+        return [this._getName(classOrName), this._getDependency(__class)];
+
+    }
+
+    /**
+     * @param {Function|string} dependency
+     * @return {Function}
+     * @private
+     */
+    _getDependency(dependency): Function {
+        if (dependency instanceof Function) {
+            return dependency;
+        }
+
+        return require(`./../${dependency}`).default;
+    }
+
+    /**
+     * @param {Function|string} classOrName
+     * @return {string}
+     * @private
+     */
+    _getName(classOrName): string {
+        if (classOrName instanceof Function) {
+            return classOrName.name;
+        }
+
+        return classOrName;
+    }
+
+    /**
+     * @param {string|Function} classOrName
+     * @return {Resolver|null}
+     * @private
+     */
+    _getResolver(classOrName) {
+        classOrName = this._getName(classOrName);
+
+        return this._items[classOrName] || null;
+    }
+
+    /**
+     * @param {string|Function} classOrName
+     * @return {boolean}
+     */
+    has(classOrName) {
+        return !!this._getResolver(classOrName);
+    }
+
+    /**
+     * @param {string|Function} classOrName
+     * @return {*}
+     */
+    get(classOrName) {
+        if (!this.has(classOrName)) {
+            if (classOrName instanceof Function) {
+                this.factory(classOrName.name, classOrName);
+            } else {
+                throw new ReferenceError(`Invalid container reference ${classOrName}`);
+            }
+        }
+
+        return this._getResolver(classOrName).resolve(this);
     }
 }
