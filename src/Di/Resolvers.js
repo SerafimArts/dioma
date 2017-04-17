@@ -1,4 +1,7 @@
+import Inject from "./Inject";
+import Container from "./Container";
 import Reader from "../Annotation/Reader";
+
 
 export class Resolver {
     /**
@@ -11,16 +14,24 @@ export class Resolver {
 
     /**
      * @param {Container} container
+     * @return {Object}
+     */
+    resolve(container: Container): Object {
+        throw new TypeError('Can not call an abstract method');
+    }
+
+    /**
+     * @param {Container} container
      * @return {Array}
      */
-    resolve(container: Container): Array {
+    resolveArguments(container: Container): Array {
         let inject: Inject = this._reader.getClassAnnotation('Inject');
 
         if (inject !== null) {
             let dependencies = [];
 
             for (let dependency of inject.getDependencies()) {
-                dependencies.push(container.get(dependency));
+                dependencies.push(container.make(dependency));
             }
 
             return dependencies;
@@ -31,15 +42,23 @@ export class Resolver {
 }
 
 export class FactoryResolver extends Resolver {
-    resolve(container: Container) {
-        return new this._item(...super.resolve(container));
+    /**
+     * @param {Container} container
+     * @return {Object}
+     */
+    resolve(container: Container): Object {
+        return new this._item(...super.resolveArguments(container));
     }
 }
 
 export class SingletonResolver extends Resolver {
-    resolve(container: Container) {
+    /**
+     * @param {Container} container
+     * @return {Object}
+     */
+    resolve(container: Container): Object {
         if (!this.resolved) {
-            this.resolved = new this._item(...super.resolve(container));
+            this.resolved = new this._item(...super.resolveArguments(container));
         }
 
         return this.resolved;

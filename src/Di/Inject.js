@@ -19,6 +19,7 @@ class Inject {
     }
 }
 
+
 export default function(args) {
     return (new Annotation(args, 'dependencies'))
         .delegate(Inject);

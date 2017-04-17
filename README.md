@@ -1,4 +1,4 @@
-ES6 Dependency Injecton
+Dependency Injecton Container
 ==============================
 
 ## Simple example:
@@ -6,62 +6,112 @@ ES6 Dependency Injecton
 ```js
 import Container from "Di/Container";
 
-var app = new Container;
+let app = new Container;
 
-app.bind('some', 23);
-app.bind('any', 42);
+app.singleton(class MyService {})
 
-app.bind('test', (some, any) => {
-    console.log('Some: ', some, ', Any: ', any);
-});
-
-app.make('test'); // Some: 23, Any: 42
+app.make('MyService'); // object MyService {}
 ```
 
-## Extended example:
+### Define a services
 
 ```js
-import Container from "Di/Container";
+let app = new Container('~/some/');
 
-var user = null,
-    app  = new Container;
+app.singleton(class ServiceClass {});
+// app.make(ServiceClass)
+//  or
+// app.make('ServiceClass')
 
-class User {
-    isAdmin = false;
+app.singleton('my-service', ServiceClass);
+// app.make('my-service')
 
-    constructor(auth:AuthGuard) {
-        this.isAdmin = auth.check();
-    }
-}
+app.singleton('Service/Name'); 
+// Will be required `~/some/Service/Name`
+// app.make('Name');
 
-class AuthGuard {
-    check() {
-        return Math.random() > .5;
-    }
-}
+app.singleton('my-service', 'Service/Name'); 
+// Will be required `~/some/Service/Name`
+// app.make('my-service');
 
-
-// Was be created once
-app.singleton('auth', AuthGuard);
-
-
-// Runtime initialisation without binding as factory
-user = app.make(User); // class User#1 { isAdmin = false; }
-user = app.make(User); // class User#2 { isAdmin = true; }
-user = app.make(User); // class User#3 { isAdmin = false; }
+// Factories same with `.singleton(...)` method
+app.factory(...); 
 ```
 
-## API:
+### Dependency resolving
 
-- `.bind(alias: string, concrete: any)` - Bind value as factory without resolving cache
-- `.singleton(alias: string, concrete: any)` - Bind value as singleton
-- `.make(alias: string|Function)` - Resolve a value
-- `.has(alias: string|Function)` - Bool: Service is declared in container
+```js
+app.singleton(class Service {});
+app.make(MyClass);
 
+// -------------
 
-## Building
+@Inject('Service')
+class MyClass {
+    constructor(service) {
+        console.log(service);
+        // >> "object Service {}"
+    }
+}
+```
 
-- `npm install`
-- `gulp default`
+## Annotations
 
-> See package.json and gulpfile.js for resolve building environment
+### Define an annotation
+
+```js
+import Target from './Annotation/Target';
+import Annotation from './Annotation/Annotation';
+
+@Target(['Method', 'Property'])
+class MyAnnotation {
+    some = 23;
+}
+
+export default function(args) {
+    return new Annotation(args).delegate(MyAnnotation);
+};
+```
+
+### Use annotations
+
+```js
+import MyAnnotation from "./MyAnnotation";
+
+@MyAnnotation({ some: 42 }) // Error: Unavailable annotation target "Class"
+class Test {
+    @MyAnnotation({ some: 42 }) // Ok 
+    myProperty = 'any';
+    
+    @MyAnnotation({ some: 42 }) // Ok
+    myMethod() {        
+    }
+}
+```
+
+### Read annotations
+
+Annotation reader is fully compatible with TypeScript `Reflect.metadata`.
+
+```js
+import Reader from "./Annotation/Reader";
+
+let reader = new Reader(Test);
+
+// Read
+
+reader.getClassAnnotations(); // []
+reader.getClassAnnotation('MyAnnotation'); // []
+
+reader.getMethodAnnotations('myMethod'); // [ MyAnnotation ]
+reader.getMethodAnnotation('myMethod', 'MyAnnotation'); // [ MyAnnotation ]
+
+reader.getPropertyAnnotations('myProperty'); // [ MyAnnotation ]
+reader.getPropertyAnnotation('myProperty', 'MyAnnotation'); // [ MyAnnotation ]
+
+// Write
+
+reader.addClassAnnotation(new SomeAnnotation);
+reader.addMethodAnnotation('myMethod', new SomeAnnotation);
+reader.addPropertyAnnotation('myProperty', new SomeAnnotation);
+```
