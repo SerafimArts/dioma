@@ -11,27 +11,30 @@ export class AnnotationTargetError extends TypeError {}
  *
  * @type {string}
  */
-type AnnotationTarget = Target.TARGET_CLASS | Target.TARGET_METHOD | Target.TARGET_PROPERTY;
+export type AnnotationTarget = TargetType.Class | TargetType.Method | TargetType.Property;
+
+
+export class TargetType {
+    /**
+     * @type {string}
+     */
+    static Class = 'Class';
+
+    /**
+     * @type {string}
+     */
+    static Method = 'Method';
+
+    /**
+     * @type {string}
+     */
+    static Property = 'Property';
+}
 
 /**
  * Target
  */
 class Target {
-    /**
-     * @type {string}
-     */
-    static TARGET_CLASS = 'Class';
-
-    /**
-     * @type {string}
-     */
-    static TARGET_METHOD = 'Method';
-
-    /**
-     * @type {string}
-     */
-    static TARGET_PROPERTY = 'Property';
-
     /**
      * @type {Array}
      */
@@ -58,7 +61,7 @@ export default function(target) {
     return function (ctx, name, descr) {
         let info = Annotation.info(ctx, name, descr);
 
-        if (info.target === Target.TARGET_CLASS) {
+        if (info.target === TargetType.Class) {
             let annotation = new Target();
             annotation.targetings = target instanceof Array ? target : [target];
 

@@ -1,5 +1,5 @@
 import Reader from './Reader';
-import {check, default as Target} from './Target';
+import {default as Target, check, TargetType} from './Target';
 
 /**
  * This is default annotation property for automatic type casting:
@@ -45,14 +45,14 @@ export default class Annotation {
      */
     static getTarget(ctx, descr): string {
         if (ctx instanceof Function) {
-            return Target.TARGET_CLASS;
+            return TargetType.Class;
         }
 
         if (typeof descr.value === 'function') {
-            return Target.TARGET_METHOD;
+            return TargetType.Method;
         }
 
-        return Target.TARGET_PROPERTY;
+        return TargetType.Property;
     }
 
     /**
@@ -64,7 +64,7 @@ export default class Annotation {
     static getName(ctx, name, descr): string {
         let type = this.getTarget(ctx, descr);
 
-        return type === Target.TARGET_CLASS ? ctx.name : name;
+        return type === TargetType.Class ? ctx.name : name;
     }
 
     /**
@@ -75,7 +75,7 @@ export default class Annotation {
     static getClassContext(ctx, descr): Function {
         let type = this.getTarget(ctx, descr);
 
-        return type === Target.TARGET_CLASS ? ctx : ctx.constructor;
+        return type === TargetType.Class ? ctx : ctx.constructor;
     }
 
     /**
@@ -135,15 +135,15 @@ export default class Annotation {
             check(targetAnnotation, info);
 
             switch (info.target) {
-                case Target.TARGET_CLASS:
+                case TargetType.Class:
                     meta.addClassAnnotation(annotation);
                     break;
 
-                case Target.TARGET_PROPERTY:
+                case TargetType.Property:
                     meta.addPropertyAnnotation(info.name, annotation);
                     break;
 
-                case Target.TARGET_METHOD:
+                case TargetType.Method:
                     meta.addMethodAnnotation(info.name, annotation);
                     break;
             }
