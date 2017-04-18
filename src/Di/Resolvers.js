@@ -56,11 +56,13 @@ export class Resolver {
      * @return {Object}
      */
     create(container: Container): Object {
-        if (Support.isClass(this.getDependency)) {
-            return new this.getDependency()(...this.resolveArguments(container));
+        let dependency = this.getDependency();
+
+        if (Support.isClass(dependency)) {
+            return new dependency(...this.resolveArguments(container));
         }
 
-        return this.getDependency();
+        return dependency;
     }
 
     /**
