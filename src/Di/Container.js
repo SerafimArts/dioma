@@ -100,7 +100,9 @@ export default class Container {
             throw new ReferenceError(`${Support.getName(__instance)} is not a valid object.`);
         }
 
-        this._bindings[Support.getName(__instance)] = new InstanceResolver(__instance);
+        this._bindings[Support.getName(instanceOrName)] = new InstanceResolver(__instance);
+
+        return this;
     }
 
     /**

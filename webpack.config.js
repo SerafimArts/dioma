@@ -4,11 +4,11 @@ const webpack = require('webpack');
 module.exports = {
     devtool: 'hidden-source-map',
     entry: [
-        './src/index.js'
+        './index.js'
     ],
     output: {
         path: path.resolve(__dirname, 'dist'),
-        filename: 'di-container.js'
+        filename: 'dioma.min.js'
     },
     module: {
         rules: [
