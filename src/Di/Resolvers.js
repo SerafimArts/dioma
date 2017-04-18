@@ -1,15 +1,66 @@
 import Inject from "./Inject";
 import Container from "./Container";
 import Reader from "../Annotation/Reader";
+import {default as Support, ServiceIdentifier} from "./Support";
 
-
+/**
+ * Base resolver class
+ */
 export class Resolver {
     /**
-     * @param {Function} __class
+     * @type {*}
+     * @private
      */
-    constructor(__class: Function) {
-        this._item = __class;
-        this._reader = new Reader(__class);
+    _service: any = null;
+
+    /**
+     * @type {Array|null}
+     * @private
+     */
+    _args: ?Array = null;
+
+    /**
+     * @param {ServiceIdentifier} dependency
+     */
+    constructor(dependency: ServiceIdentifier) {
+        this._service = dependency;
+        this._reader = new Reader(Support.getClass(dependency));
+    }
+
+    /**
+     * @param {...string} dependencies
+     * @return {Resolver}
+     */
+    setDependencies(...dependencies): Resolver {
+        this._args = dependencies.length > 0 ? dependencies : null;
+
+        return this;
+    }
+
+    /**
+     * @return {*}
+     */
+    getDependency(): any {
+        return this._service;
+    }
+
+    /**
+     * @return {Reader}
+     */
+    getAnnotationReader(): Reader {
+        return this._reader;
+    }
+
+    /**
+     * @param {Container} container
+     * @return {Object}
+     */
+    create(container: Container): Object {
+        if (Support.isClass(this.getDependency)) {
+            return new this.getDependency()(...this.resolveArguments(container));
+        }
+
+        return this.getDependency();
     }
 
     /**
@@ -25,32 +76,53 @@ export class Resolver {
      * @return {Array}
      */
     resolveArguments(container: Container): Array {
-        let inject: Inject = this._reader.getClassAnnotation('Inject');
+        if (this._args !== null && this._args.length > 0) {
+            return Resolver._make(container, ...this._args);
+        }
+
+        let inject: Inject = this.getAnnotationReader()
+            .getClassAnnotation('Inject');
 
         if (inject !== null) {
-            let dependencies = [];
-
-            for (let dependency of inject.getDependencies()) {
-                dependencies.push(container.make(dependency));
-            }
-
-            return dependencies;
+            return Resolver._make(container, ...inject.getDependencies());
         }
 
         return [];
     }
+
+    /**
+     * @param {Container} container
+     * @param {...string} services
+     * @return {Array}
+     * @private
+     */
+    static _make(container: Container, ...services) {
+        let dependencies = [];
+
+        for (let dependency of services) {
+            dependencies.push(container.make(dependency));
+        }
+
+        return dependencies;
+    }
 }
 
+/**
+ * Create service as factory
+ */
 export class FactoryResolver extends Resolver {
     /**
      * @param {Container} container
      * @return {Object}
      */
     resolve(container: Container): Object {
-        return new this._item(...super.resolveArguments(container));
+        return this.create(container);
     }
 }
 
+/**
+ * Create service as singleton
+ */
 export class SingletonResolver extends Resolver {
     /**
      * @param {Container} container
@@ -58,9 +130,22 @@ export class SingletonResolver extends Resolver {
      */
     resolve(container: Container): Object {
         if (!this.resolved) {
-            this.resolved = new this._item(...super.resolveArguments(container));
+            this.resolved = this.create(container);
         }
 
         return this.resolved;
+    }
+}
+
+/**
+ * Create service as instance
+ */
+export class InstanceResolver extends Resolver {
+    /**
+     * @param {Container} container
+     * @return {Object}
+     */
+    resolve(container: Container): Object {
+        return this.getDependency();
     }
 }
