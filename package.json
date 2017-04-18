@@ -1,6 +1,13 @@
 {
-    "private": true,
+    "name": "dioma",
+    "version": "0.0.1",
+    "description": "Powerfull dependency injection container",
+    "license": "MIT",
     "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/SerafimArts/DependencyInjecton/tree/master"
+    },
     "scripts": {
         "build": "cross-env BABEL_ENV=production webpack --config webpack.config.js",
         "watch": "cross-env BABEL_ENV=dev webpack --config webpack.config.js --progress --colors --watch",
@@ -11,7 +18,6 @@
         "babel",
         "webpack"
     ],
-    "license": "MIT",
     "devDependencies": {
         "webpack": "^2.3",
         "flow-bin": "^0.37.4",
