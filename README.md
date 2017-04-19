@@ -1,5 +1,5 @@
 <p align="center">
-    <img src="https://habrastorage.org/files/31e/06a/147/31e06a1477dd4892af05815567aac026.png" />
+    <img src="https://habrastorage.org/files/4ad/443/ccf/4ad443ccff3b4d23af221a4570bafa03.png" />
 </p>
 
 -------
