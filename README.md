@@ -1,7 +1,7 @@
 <p align="center">
     <img src="https://habrastorage.org/files/31e/06a/147/31e06a1477dd4892af05815567aac026.png" />
     
-    Dioma is a powerful dependency injection (**DI**) container.
+Dioma is a powerful dependency injection (**DI**) container.
 </p>
 
 
