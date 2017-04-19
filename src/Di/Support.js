@@ -1,11 +1,10 @@
 /**
- * Service identifier type. It can be string, object or function.
- *  - String:  "string"           -> "string"
- *  - Function: SomeFoo           -> "SomeFoo"
- *  - Object:   obj = new SomeFoo -> "SomeFoo"
+ * Service identifier type. It can be string object or function.
+ * - Strings transform "as is"
+ * - Functions must be transform to string as given getter "SomeFoo.name"
+ * - Objects must be transform to string as given getter "SomeObject.constructor.name"
  */
 export type ServiceIdentifier = string | Function | Object;
-
 
 export default class Support {
     /**
@@ -30,7 +29,7 @@ export default class Support {
      * @return {boolean}
      */
     static isClass(dependency: Function): boolean {
-        return dependency instanceof Function;
+        return dependency instanceof Function && dependency.name !== '';
     }
 
     /**
@@ -41,6 +40,14 @@ export default class Support {
         return typeof dependency === 'object' &&
             !(dependency instanceof Array) &&
             dependency !== null;
+    }
+
+    /**
+     * @param {Function|*} dependency
+     * @return {boolean}
+     */
+    static isAnonymous(dependency: Function): boolean {
+        return dependency instanceof Function && dependency.name === '';
     }
 
     /**

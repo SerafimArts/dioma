@@ -2,7 +2,7 @@ const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-    devtool: 'hidden-source-map',
+    devtool: 'inline-source-map',
     entry: [
         './index.js'
     ],
@@ -26,10 +26,13 @@ module.exports = {
                 screw_ie8: true,
                 warnings: false
             },
+            mangle: {
+                keep_fnames: true
+            },
             output: {
                 comments: false
             },
-            sourceMap: false
+            sourceMap: true
         })
     ]
-}
+};

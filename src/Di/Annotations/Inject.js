@@ -1,8 +1,8 @@
-import Target from '../Annotation/Target';
-import Annotation from '../Annotation/Annotation';
+import Target from '../../Annotation/Target';
+import Annotation from '../../Annotation/Annotation';
 
 
-@Target('Class')
+@Target(['Class', 'Method'])
 class Inject {
     /**
      * @type {Array|string[]}

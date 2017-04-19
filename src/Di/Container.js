@@ -1,160 +1,266 @@
-import Inject from "./Inject";
-import Support from "./Support";
-import { Resolver, FactoryResolver, InstanceResolver, SingletonResolver } from "./Resolvers";
+import Registrar from "./Registrar";
+import Inject from "./Annotations/Inject";
+import Resolver from "./Resolvers/Resolver";
+import InvalidAliasError from "./Exceptions/InvalidAliasError";
+import {default as Support, ServiceIdentifier} from "./Support";
+import InvalidDefinitionError from "./Exceptions/InvalidDefinitionError";
 
 /**
- * Service identifier type. It can be string or function.
- *  - Strings:  "string" -> "string"
- *  - Functions: SomeFoo -> "SomeFoo"
+ * @type {Symbol}
  */
-type ServiceIdentifier = string | Function;
+export const CONTAINER_IDENTIFIER = Symbol('Container');
 
 /**
- *
+ * @type {Symbol}
+ */
+const RESOLVED_ANY = Symbol('*');
+
+/**
+ * Container is a dependency injection container. It gives
+ * access to object instances (services). Services and parameters
+ * are simple key/pair stores. Parameter and service
+ * keys are case insensitive.
  */
 export default class Container {
     /**
-     * The container's bindings.
+     * The container's services.
      *
      * @type {Object.<string, Resolver>}
      * @private
      */
-    _bindings = {};
+    _services = {};
 
     /**
-     * @param {boolean} exportInjections
+     * @type {Object.<string, string>}
+     * @private
      */
-    constructor(exportInjections: boolean = true) {
-        if (exportInjections) {
-            window.Inject = Inject;
+    _aliases = {};
+
+    /**
+     * @type {{}}
+     * @private
+     */
+    _resolvedEvents = {};
+
+    /**
+     * @param {boolean} exportAnnotations
+     * @constructor
+     */
+    constructor(exportAnnotations: boolean = true) {
+        if (exportAnnotations) {
+            (global || window).Inject = Inject;
         }
+
+        this.instance(CONTAINER_IDENTIFIER, this);
     }
 
     /**
-     * Define a service as singleton from class.
-     *
-     * <code>
-     *     container.singleton('locator', ClassName);
-     *      // > app.make('locator')
-     *
-     *     container.singleton(ClassName);
-     *      // > app.make('ClassName')
-     * </code>
-     *
-     * @param {ServiceIdentifier} classOrName
-     * @param {Function} __class
+     * @param {ServiceIdentifier} nameOrService
+     * @param {*|null} service
      * @return {Container}
+     * @throws {TypeError}
      */
-    singleton(classOrName: ServiceIdentifier, __class: ?Function = null): Container {
-        [classOrName, __class] = Container._resolveServiceDefineArguments(classOrName, __class);
-
-        this._bindings[classOrName] = new SingletonResolver(__class);
+    instance(nameOrService: ServiceIdentifier, service: ?any = null): Container {
+        this._define(nameOrService, service).instance();
 
         return this;
     }
 
     /**
-     * Define a service as factory from class.
-     *
-     * <code>
-     *     container.factory('locator', ClassName);
-     *      // > app.make('locator')
-     *
-     *     container.factory(ClassName);
-     *      // > app.make('ClassName')
-     * </code>
-     *
-     * @param {ServiceIdentifier} classOrName
-     * @param {Function|null} __class
+     * @param {ServiceIdentifier} nameOrService
+     * @param {*|null} service
      * @return {Container}
+     * @throws {TypeError}
      */
-    factory(classOrName: ServiceIdentifier, __class: ?Function = null): Container {
-        [classOrName, __class] = Container._resolveServiceDefineArguments(classOrName, __class);
-
-        this._bindings[classOrName] = new FactoryResolver(__class);
+    factory(nameOrService: ServiceIdentifier, service: ?any = null): Container {
+        this._define(nameOrService, service).factory();
 
         return this;
     }
 
     /**
-     * Define an instance.
-     *
-     * <code>
-     *     container.instance('locator', new ClassName);
-     *      // > app.make('locator')
-     *
-     *     container.instance(new ClassName);
-     *      // > app.make('ClassName')
-     * </code>
-     *
-     * @param {ServiceIdentifier} instanceOrName
-     * @param {Object|null} __instance
+     * @param {ServiceIdentifier} nameOrService
+     * @param {*|null} service
      * @return {Container}
+     * @throws {TypeError}
      */
-    instance(instanceOrName: ServiceIdentifier, __instance: ?Object = null): Container {
-        if (__instance === null) {
-            __instance = instanceOrName;
-        }
-
-        if (!Support.isObject(__instance)) {
-            throw new ReferenceError(`${Support.getName(__instance)} is not a valid object.`);
-        }
-
-        this._bindings[Support.getName(instanceOrName)] = new InstanceResolver(__instance);
+    singleton(nameOrService: ServiceIdentifier, service: ?any = null): Container {
+        this._define(nameOrService, service).singleton();
 
         return this;
     }
 
     /**
-     * @param {ServiceIdentifier} classOrName
-     * @return {Resolver|null}
+     * @param {ServiceIdentifier} nameOrService
+     * @param {Function} callback
+     * @return {Container}
      */
-    getResolver(classOrName: ServiceIdentifier): ?Resolver {
-        classOrName = Support.getName(classOrName);
+    resolving(nameOrService: ServiceIdentifier, callback: ?Function = null): Container {
+        if (callback === null && nameOrService instanceof Function) {
+            return this.resolving(RESOLVED_ANY, nameOrService);
+        }
 
-        return this._bindings[classOrName] || null;
+        this._getEvents(Support.getName(nameOrService))
+            .push(callback);
+
+        return this;
     }
 
     /**
-     * @param {ServiceIdentifier} classOrName
+     * @param {string} serviceName
+     * @param {*} value
+     * @private
+     */
+    _fireResolvedEvents(serviceName: string, value: any) {
+        for (let observer of this._getEvents(serviceName)) {
+            observer(value);
+        }
+
+        for (let observer of this._getEvents(RESOLVED_ANY)) {
+            observer(serviceName, value);
+        }
+    }
+
+    /**
+     * @param {string} name
+     * @return {Array}
+     * @private
+     */
+    _getEvents(name: string): Array {
+        if (!this._resolvedEvents[name]) {
+            this._resolvedEvents[name] = [];
+        }
+
+        return this._resolvedEvents[name];
+    }
+
+    /**
+     * @param {ServiceIdentifier} nameOrService
+     * @param {*|null} service
+     * @return {Registrar}
+     * @throws {TypeError}
+     * @private
+     */
+    _define(nameOrService: ServiceIdentifier, service: ?any = null): Registrar {
+        [nameOrService, service] = Container._normaliseBindArguments(nameOrService, service);
+
+        return (new Registrar(this, nameOrService, service))
+            .resolved((name, value) => this._fireResolvedEvents(name, value));
+    }
+
+    /**
+     * @param {string} name
+     * @param {Resolver} resolver
+     * @return {Container}
+     */
+    register(name: string, resolver: Resolver): Container {
+        this._services[name] = resolver;
+
+        return this;
+    }
+
+    /**
+     * @param {string} original
+     * @param {string} alias
+     * @return {Container}
+     */
+    alias(original: string, alias: string): Container {
+        if (typeof alias === 'string' || this.isAlias(alias)) {
+            throw InvalidAliasError.create(alias);
+        }
+
+        if (this._services[alias]) {
+            throw new InvalidAliasError(`Can not create alias ${alias}. Service ${alias} already defined.`);
+        }
+
+        this._aliases[alias] = original;
+
+        return this;
+    }
+
+    /**
+     * @param {string} alias
      * @return {boolean}
      */
-    has(classOrName: ServiceIdentifier) {
-        return !!this.getResolver(classOrName);
+    isAlias(alias: string): boolean {
+        return !!this._aliases[alias];
     }
 
     /**
-     * @param {ServiceIdentifier} locator
-     * @return {Object}
+     * @param {ServiceIdentifier} name
+     * @return {Resolver}
+     * @private
      */
-    make(locator: ServiceIdentifier): Object {
-        if (!this.has(locator)) {
-            if (locator instanceof Function) {
-                this.factory(Support.getName(locator), locator);
-            } else {
-                throw new ReferenceError(`Invalid container reference ${locator}`);
+    _getResolver(name: ServiceIdentifier): Resolver {
+        name = Support.getName(name);
+
+        if (!name) {
+            throw new TypeError('Wrong service name.');
+        }
+
+        if (this.isAlias(name)) {
+            return this._getResolver(this._aliases[name]);
+        }
+
+        if (!this.has(name)) {
+            throw new TypeError(`Service ${name} is not defined.`);
+        }
+
+        return this._services[name];
+    }
+
+    /**
+     * @param {ServiceIdentifier} name
+     * @return {boolean}
+     */
+    has(name: ServiceIdentifier): boolean {
+        return !!this._services[Support.getName(name)];
+    }
+
+    /**
+     * @param name
+     * @return {*}
+     */
+    get(name: ServiceIdentifier): any {
+        return this._getResolver(name).resolve();
+    }
+
+    /**
+     * @param {ServiceIdentifier} name
+     * @return {*}
+     */
+    make(name: ServiceIdentifier): any {
+        return this.makeWith(name);
+    }
+
+    /**
+     * @param {ServiceIdentifier} name
+     * @param {Array} args
+     * @return {*}
+     */
+    makeWith(name: ServiceIdentifier, args: Array = []): any {
+        if (!this.has(name)) {
+            this._define(name).factory();
+        }
+
+        return this._getResolver(name).resolve(...args);
+    }
+
+    /**
+     * @param {ServiceIdentifier} nameOrService
+     * @param {ServiceIdentifier|null} service
+     * @return {[*,*]}
+     * @private
+     */
+    static _normaliseBindArguments(nameOrService: ServiceIdentifier, service: ?ServiceIdentifier = null): Array {
+        if (service === null || typeof service === 'undefined') {
+            if (!Support.isClass(nameOrService) && !Support.isObject(nameOrService)) {
+                throw InvalidDefinitionError.create(nameOrService);
             }
+
+            return [Support.getName(nameOrService), nameOrService];
         }
 
-        return this.getResolver(locator).resolve(this);
-    }
-
-    /**
-     * Support method for defining services.
-     *
-     * @param {ServiceIdentifier} classOrName
-     * @param {Function|null} __class
-     * @return {Array}
-     */
-    static _resolveServiceDefineArguments(classOrName: ServiceIdentifier,  __class: ?Function = null): Array {
-        if (__class === null) {
-            __class = classOrName;
-        }
-
-        if (!Support.isClass(__class)) {
-            throw new ReferenceError(`${Support.getName(__class)} is not a valid class.`);
-        }
-
-        return [Support.getName(classOrName), __class];
+        return [nameOrService, service];
     }
 }
