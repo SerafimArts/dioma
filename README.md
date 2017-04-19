@@ -3,17 +3,17 @@ Dioma
 
 Dioma is a powerful dependency injection (**DI**) container.
 
-- [Introduction](#Introduction)
-- [Binding](#Binding)
-    - [Binding Basics](#Binding%20Basics)
-    - [Binding Interfaces To Implementations](#Binding%20Interfaces%20To%20Implementations)
-- [Resolving](#Resolving)
-    - [By Service Locator](#By%20Service%20Locator)
-    - [Automatic Injection](#Automatic%20Injection)
-- [Container Events](#Container%20Events)
-- [Annotations](#Annotations)
-    - [Read An Annotations](#Read%20An%20Annotations)
-    - [Define Custom Annotations](#Define%20Custom%20Annotations)
+- [Introduction](#introduction)
+- [Binding](#binding)
+    - [Binding Basics](#binding-basics)
+    - [Binding Interfaces To Implementations](#binding-interfaces-to-implementations)
+- [Resolving](#resolving)
+    - [By Service Locator](#by-service-locator)
+    - [Automatic Injection](#automatic-injection)
+- [Container Events](#container-events)
+- [Annotations](#annotations)
+    - [Read An Annotations](#read-an-annotations)
+    - [Define Custom Annotations](#define-custom-annotations)
 
     
 # Introduction
