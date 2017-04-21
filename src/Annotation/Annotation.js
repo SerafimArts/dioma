@@ -40,15 +40,16 @@ const DEFAULT_ANNOTATION_PROPERTY = 'default';
 export default class Annotation {
     /**
      * @param ctx
+     * @param name
      * @param descr
      * @return {string}
      */
-    static getTarget(ctx, descr): string {
+    static getTarget(ctx, name, descr): string {
         if (ctx instanceof Function) {
             return TargetType.Class;
         }
 
-        if (typeof descr.value === 'function' || typeof descr === 'string') {
+        if (descr && typeof descr.value === 'function') {
             return TargetType.Method;
         }
 
@@ -62,18 +63,19 @@ export default class Annotation {
      * @return {string}
      */
     static getName(ctx, name, descr): string {
-        let type = this.getTarget(ctx, descr);
+        let type = this.getTarget(ctx, name, descr);
 
         return type === TargetType.Class ? ctx.name : name;
     }
 
     /**
      * @param ctx
+     * @param name
      * @param descr
      * @return {Function}
      */
-    static getClassContext(ctx, descr): Function {
-        let type = this.getTarget(ctx, descr);
+    static getClassContext(ctx, name, descr): Function {
+        let type = this.getTarget(ctx, name, descr);
 
         return type === TargetType.Class ? ctx : ctx.constructor;
     }
@@ -88,7 +90,7 @@ export default class Annotation {
         return {
             target: this.getTarget(ctx, name, descr),
             name:   this.getName(ctx, name, descr),
-            class:  this.getClassContext(ctx, descr)
+            class:  this.getClassContext(ctx, name, descr)
         }
     }
 
