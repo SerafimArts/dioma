@@ -52,7 +52,7 @@ export function check(annotationClass, imp: Object) {
             }
         }
 
-        throw new AnnotationTargetError(`${annotation.targetings.join(', ')} target required but ${target} given.`);
+        throw new AnnotationTargetError(`${annotation.targetings.join(', ')} target required but ${imp.target} given.`);
     }
 }
 
