@@ -165,7 +165,7 @@ export default class Container {
      * @return {Container}
      */
     alias(original: string, alias: string): Container {
-        if (typeof alias === 'string' || this.isAlias(alias)) {
+        if (typeof alias === 'string' && this.isAlias(alias)) {
             throw InvalidAliasError.create(alias);
         }
 
