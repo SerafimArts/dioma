@@ -241,7 +241,7 @@ export default class Container {
      * @return {*}
      */
     makeWith(name: ServiceIdentifier, args: Array = []): any {
-        if (!this.has(name)) {
+        if (!this.has(name) && !this.isAlias(name)) {
             this._define(name).factory();
         }
 
