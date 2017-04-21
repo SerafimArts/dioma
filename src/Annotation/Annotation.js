@@ -48,7 +48,7 @@ export default class Annotation {
             return TargetType.Class;
         }
 
-        if (typeof descr.value === 'function') {
+        if (typeof descr.value === 'function' || typeof descr === 'string') {
             return TargetType.Method;
         }
 
