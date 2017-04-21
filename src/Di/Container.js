@@ -161,19 +161,21 @@ export default class Container {
 
     /**
      * @param {string} original
-     * @param {string} alias
+     * @param {...string} aliases
      * @return {Container}
      */
-    alias(original: string, alias: string): Container {
-        if (typeof alias === 'string' && this.isAlias(alias)) {
-            throw InvalidAliasError.create(alias);
-        }
+    alias(original: string, ...aliases: string): Container {
+        for (let alias of aliases) {
+            if (typeof alias === 'string' && this.isAlias(alias)) {
+                throw InvalidAliasError.create(alias);
+            }
 
-        if (this._services[alias]) {
-            throw new InvalidAliasError(`Can not create alias ${alias}. Service ${alias} already defined.`);
-        }
+            if (this._services[alias]) {
+                throw new InvalidAliasError(`Can not create alias ${alias}. Service ${alias} already defined.`);
+            }
 
-        this._aliases[alias] = original;
+            this._aliases[alias] = original;
+        }
 
         return this;
     }
